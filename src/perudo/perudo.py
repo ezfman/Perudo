@@ -93,8 +93,6 @@ class Perudo:
             return self.players[0].id
         else:
             return losers
-        # print("GAME OVER")
-        # print(f"Player {self.players[0].id} is the winner")
 
     def _round(self):
         round_over = False
@@ -103,17 +101,12 @@ class Perudo:
                 bet = player(self.bet)
                 match bet["action"]:
                     case "BET":
-                        # TODO: Validate bets, maybe with PyDantic
-                        if (
-                            self.bet
-                            and bet["count"] <= self.bet["count"]
-                            and bet["face"] <= self.bet["face"]
-                        ):
-                            # print(f"Illegal move; penalizing player {player.id}")
+                        # If bets are invalid, lose as punishment.
+                        if self._validate_bet(bet):
+                            self.bet = bet
+                        else:
                             losers = [player.id]
                             round_over = True
-                            break
-                        self.bet = bet
                     case "CALL":
                         round_over = True
                         if self.bet["count"] >= self.counts[self.bet["face"]]:
@@ -127,7 +120,6 @@ class Perudo:
                         else:
                             losers = [player.id]
                     case _:
-                        # print(f"Illegal move; penalizing player {player.id}")
                         losers = [player.id]
                         round_over = True
 
@@ -152,7 +144,6 @@ class Perudo:
                     self.players = list(
                         filter(lambda x: x.id != player.id, self.players)
                     )
-                    print(f"PLAYER {player.id} HAS BEEN ELIMINATED...")
                     self.eliminated_players.append(player.id)
 
         self.counts = Counter(sum(self.hands, []))
@@ -161,17 +152,36 @@ class Perudo:
         return [random.randint(1, 6) for _ in range(num_dice)]
 
     def _validate_bet(self, bet: dict) -> bool:
+        # Compare incoming bet to existing to validate that it is legal
         try:
             assert all(["face" in bet, "count" in bet])
-            assert bet["face"] in range(1, 7)
-            assert bet["count"] in range(1, self.total_dice + 1)
-            if self.bet:
-                assert (
-                    bet["face"] > self.bet["face"] or bet["count"] > self.bet["count"]
-                )
-            return True
+            assert 1 <= bet["face"] <= 6
+            assert 1 <= bet["count"] <= self.total_dice
         except AssertionError:
             return False
+
+        # Allow any legal bet for the first turn of the round
+        if not self.bet:
+            return True
+
+        # Face value cannot change on an uno round
+        if self.uno and bet["face"] != self.bet["face"]:
+            return False
+
+        if self.bet["face"] == 1:
+            if bet["face"] == 1:
+                return bet["count"] > self.bet["count"]
+            else:
+                return bet["count"] >= 2 * self.bet["count"]
+        elif bet["face"] == 1:
+            return 2 * bet["count"] > self.bet["count"]
+        else:
+            if bet["count"] > self.bet["count"]:
+                return True
+            elif bet["count"] == self.bet["count"]:
+                return bet["face"] > self.bet["face"]
+            else:
+                return False
 
 
 # TODO: Implement 1 as wilds, correct uno rules

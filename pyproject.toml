@@ -12,7 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-perudo = "perudo:main"
+game = "perudo:game"
+sim = "perudo:sim"
 
 [build-system]
 requires = ["hatchling"]

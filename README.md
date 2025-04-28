@@ -4,15 +4,34 @@ This repository implements Perudo (also known as Liar's Dice) with a simple PyGa
 
 ## Running
 
-To run the game, simply use the `perudo` entrypoint:
+To install the project, use:
 
-```
+```bash
 # With pipx
 pipx install .
-perudo
 
 # With uv
-uv run perudo
+uv sync
+```
+
+To run the game, simply use the `game` entrypoint:
+
+```bash
+# With pipx
+game
+
+# With uv
+uv run game
+```
+
+To simulate a game:
+
+```bash
+# With pipx
+sim
+
+# With uv
+sim
 ```
 
 ## TODO
