@@ -1,0 +1,26 @@
+[project]
+name = "perudo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Elie Ferdman", email = "leferdman@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pygame-ce>=2.5.3",
+]
+
+[project.scripts]
+perudo = "perudo:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mkdocs-material>=9.6.12",
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.7",
+]
