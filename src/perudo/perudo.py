@@ -80,6 +80,7 @@ class Perudo:
         self.bet = None
         self.uno = False
         self.eliminated_players = []
+        self.at_bat = self.player_ids[0]
 
     def __call__(self) -> Optional[int]:
         """Run a round of Perudo, returning losers or the ultimate winner
@@ -97,8 +98,12 @@ class Perudo:
     def _round(self):
         round_over = False
         while not round_over:
-            for player in self.players:
+            for player in self.players[self.at_bat :] + self.players[: self.at_bat]:
                 bet = player(self.bet)
+                if self.bet and self.bet["face"] == 1:
+                    wilds = 0
+                else:
+                    wilds = self.uno * self.counts[1]
                 match bet["action"]:
                     case "BET":
                         # If bets are invalid, lose as punishment.
@@ -109,13 +114,13 @@ class Perudo:
                             round_over = True
                     case "CALL":
                         round_over = True
-                        if self.bet["count"] >= self.counts[self.bet["face"]]:
+                        if self.bet["count"] <= self.counts[self.bet["face"]] + wilds:
                             losers = [player.id]
                         else:
                             losers = [bet["id"]]
                     case "EXACT":
                         round_over = True
-                        if self.bet["count"] == self.counts[self.bet["face"]]:
+                        if self.bet["count"] == self.counts[self.bet["face"]] + wilds:
                             losers = [id for id in self.player_ids if not player.id]
                         else:
                             losers = [player.id]
@@ -123,6 +128,11 @@ class Perudo:
                         losers = [player.id]
                         round_over = True
 
+        # TODO: Correct at_bat if a player is eliminated
+        self.at_bat = player.id
+        while self.at_bat in self.eliminated_players:
+            self.at_bat += 1
+            self.at_bat = self.at_bat % self.players
         self.uno = False
         self._deal(losers)
         self.bet = None
